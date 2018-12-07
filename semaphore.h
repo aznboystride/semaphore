@@ -15,7 +15,7 @@ public:
 };
 
 // need to be checking for existing definition
-union semun { 		// truncated definition
+union semuns { 		// truncated definition
 	int val; 	// value used with SETVAL
 	ushort *array; 	// array of values: GETALL and SETALL
 };

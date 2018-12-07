@@ -13,7 +13,7 @@ SEMAPHORE::SEMAPHORE(int size) {
 	}
 
 int SEMAPHORE::remove() {
-	semun dummy;
+	semuns dummy;
 	return semctl(semid, 0 /*not used*/, IPC_RMID, dummy);
 	}
 
@@ -52,7 +52,7 @@ int SEMAPHORE::init() {
 	}
 	
 	// initialize all to zero
-	semun arg;
+	semuns arg;
 	ushort initv[size];
 	for(int k=0; k<size; k++) {
 		initv[k]=0;
