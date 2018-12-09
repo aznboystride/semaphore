@@ -8,7 +8,8 @@
 #include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <time.h>
+#include <limits.h>
+#include <random>
 #include "semaphore.h"
 
 using namespace std;
@@ -23,34 +24,30 @@ enum {
     SAFE
 };
 
-void deposit(SEMAPHORE&, double*, int);
-
-void withdraw(SEMAPHORE&, double*, int);
+void updateWithBeta(SEMAPHORE&, float*);
 
 void initsem(SEMAPHORE&);
 
-void initshmBUF(double*);
+void initshmBUF(float*);
 
 void parent_cleanup(SEMAPHORE&, int shmid);
 
 int main()
 {
-    srand(time(NULL));
     int shmid;
-    double* shmBUF;
+    float* shmBUF;
 
     SEMAPHORE sem(4);
     initsem(sem);
     
 
-    shmid = shmget(IPC_PRIVATE, BUFFSIZE*sizeof(double), PERMS);
-    shmBUF = (double *) shmat(shmid, 0, SHM_RND);
+    shmid = shmget(IPC_PRIVATE, BUFFSIZE*sizeof(float), PERMS);
+    shmBUF = (float *) shmat(shmid, 0, SHM_RND);
     initshmBUF(shmBUF);
 
     for(int i = 0; i < MAXTIME; i++) {
         if(!fork()) {
-            deposit(sem, shmBUF, rand() % 100);
-            withdraw(sem, shmBUF, rand() % 100);
+            updateWithBeta(sem, shmBUF);
         }
     }
     parent_cleanup(sem, shmid);
@@ -65,9 +62,9 @@ void initsem(SEMAPHORE& sem) {
     sem.V(SAFE);
 }
 
-void initshmBUF(double* shmBUF) {
+void initshmBUF(float* shmBUF) {
     for(int i = 0; i < BUFFSIZE; i++)
-        shmBUF[i] = 0;
+        shmBUF[i] = 1;
 }
 
 void parent_cleanup (SEMAPHORE &sem, int shmid) {
@@ -78,23 +75,18 @@ void parent_cleanup (SEMAPHORE &sem, int shmid) {
 	sem.remove();
 } // parent_cleanup
 
-void deposit(SEMAPHORE& sem, double* shmBUF, int amt) {
+void updateWithBeta(SEMAPHORE& sem, float* shmBUF) {
+    random_device rd;
+    uniform_real_distribution<double> distribution(-0.5, 0.5);
+    mt19937 generator(rd());
+    float beta;
     for(int k = 0; k < MAXTIME; k++) {
+        beta = distribution(generator);
         sem.P(k % BUFFSIZE);
-        cout << "\nPID: " << getpid() << " is making a deposit to buff[" << k % BUFFSIZE << "] of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
-        shmBUF[k % BUFFSIZE] += amt;
-        cout << "\nPID: " << getpid() << " sees new balance of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
-        sem.V(k % BUFFSIZE);
-        
-    }
-}
-
-void withdraw(SEMAPHORE& sem, double* shmBUF, int amt) {
-    for(int k = 0; k < MAXTIME; k++) {
-        sem.P(k % BUFFSIZE);
-        cout << "\nPID: " << getpid() << " is making a withdraw to buff[" << k % BUFFSIZE << "] of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
-        shmBUF[k % BUFFSIZE] -= amt;
-        cout << "\nPID: " << getpid() << " sees new balance of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
+        cout << "\nPID: " << getpid() << " sees current value of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
+        cout << "\nPID: " << getpid() << " is updating buff[" << k % BUFFSIZE << "] of beta " << beta << endl;
+        shmBUF[k % BUFFSIZE] += shmBUF[k % BUFFSIZE] * beta;
+        cout << "\nPID: " << getpid() << " sees new value of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
         sem.V(k % BUFFSIZE);
         
     }
