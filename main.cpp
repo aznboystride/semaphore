@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const int MAXTIME = 5;
+const int MAXTIME = 15;
 const int BUFFSIZE = 4;
 
 enum {
@@ -81,9 +81,9 @@ void parent_cleanup (SEMAPHORE &sem, int shmid) {
 void deposit(SEMAPHORE& sem, double* shmBUF, int amt) {
     for(int k = 0; k < MAXTIME; k++) {
         sem.P(k % BUFFSIZE);
-        cout << "\nPID: " << getpid() << " is making a deposit to " << k % BUFFSIZE << " of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
+        cout << "\nPID: " << getpid() << " is making a deposit to buff[" << k % BUFFSIZE << "] of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
         shmBUF[k % BUFFSIZE] += amt;
-        cout << "\nPID: " << getpid() << " sees new balance of " << k % BUFFSIZE << " to be: " << shmBUF[k % BUFFSIZE] << endl;
+        cout << "\nPID: " << getpid() << " sees new balance of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
         sem.V(k % BUFFSIZE);
         
     }
@@ -92,9 +92,9 @@ void deposit(SEMAPHORE& sem, double* shmBUF, int amt) {
 void withdraw(SEMAPHORE& sem, double* shmBUF, int amt) {
     for(int k = 0; k < MAXTIME; k++) {
         sem.P(k % BUFFSIZE);
-        cout << "\nPID: " << getpid() << " is making a withdraw to " << k % BUFFSIZE << " of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
+        cout << "\nPID: " << getpid() << " is making a withdraw to buff[" << k % BUFFSIZE << "] of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
         shmBUF[k % BUFFSIZE] -= amt;
-        cout << "\nPID: " << getpid() << " sees new balance of " << k % BUFFSIZE << " to be: " << shmBUF[k % BUFFSIZE] << endl;
+        cout << "\nPID: " << getpid() << " sees new balance of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
         sem.V(k % BUFFSIZE);
         
     }
