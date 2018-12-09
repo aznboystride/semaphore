@@ -14,7 +14,8 @@
 
 using namespace std;
 
-const int MAXTIME = 7;
+const int PROCESS_COUNT = 10;
+const int ITERATIONS = 7;
 const int BUFFSIZE = 4;
 
 enum {
@@ -45,7 +46,7 @@ int main()
     shmBUF = (float *) shmat(shmid, 0, SHM_RND);
     initshmBUF(shmBUF);
 
-    for(int i = 0; i < MAXTIME; i++) {
+    for(int i = 0; i < PROCESS_COUNT; i++) {
         if(!fork()) {
             updateWithBeta(sem, shmBUF);
         }
@@ -80,7 +81,7 @@ void updateWithBeta(SEMAPHORE& sem, float* shmBUF) {
     uniform_real_distribution<double> distribution(-0.5, 0.5);
     mt19937 generator(rd());
     float beta;
-    for(int k = 0; k < MAXTIME; k++) {
+    for(int k = 0; k < ITERATIONS; k++) {
         beta = distribution(generator);
         sem.P(k % BUFFSIZE);
         cout << "\nPID: " << getpid() << " sees current value of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
