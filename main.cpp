@@ -97,3 +97,26 @@ void deposit(SEMAPHORE& sem, double* shmBUF, int amt) {
         
     }
 }
+
+void withdraw(SEMAPHORE& sem, double* shmBUF, int amt) {
+    for(int k = 0; k < MAXTIME; k++) {
+        sem.P(CHECKING);
+        shmBUF[CHECKING] -= amt;
+        sem.V(CHECKING);
+
+        sem.P(SAVING);
+        shmBUF[SAVING] -= amt;
+        sem.V(SAVING);
+
+        sem.P(SAVING);
+        shmBUF[SAVING] -= amt;
+        sem.V(SAVING);
+
+        sem.P(SAVING);
+        shmBUF[SAVING] -= amt;
+        sem.V(SAVING);
+        
+    }
+}
+
+
