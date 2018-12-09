@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const int MAXTIME = 15;
+const int MAXTIME = 7;
 const int BUFFSIZE = 4;
 
 enum {
