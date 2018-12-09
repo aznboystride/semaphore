@@ -47,12 +47,13 @@ int main()
     shmBUF = (double *) shmat(shmid, 0, SHM_RND);
     initshmBUF(shmBUF);
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < MAXTIME; i++) {
         if(!fork()) {
             deposit(sem, shmBUF, rand() % 100);
-            //withdraw(sem, shmBUF, rand() % 100);
+            withdraw(sem, shmBUF, rand() % 100);
         }
     }
+    parent_cleanup(sem, shmid);
 
     return 0;
 }
@@ -79,58 +80,22 @@ void parent_cleanup (SEMAPHORE &sem, int shmid) {
 
 void deposit(SEMAPHORE& sem, double* shmBUF, int amt) {
     for(int k = 0; k < MAXTIME; k++) {
-        sem.P(CHECKING);
-        cout << "\nPID: " << getpid() << " is making a deposit to CHECKINGS of amt " << amt << ". Current balance is " << shmBUF[CHECKING] << endl;
-        shmBUF[CHECKING] += amt;
-        cout << "\nPID: " << getpid() << " sees new balance of CHECKINGS to be: " << shmBUF[CHECKING] << endl;
-        sem.V(CHECKING);
-
-        sem.P(SAVING);
-        cout << "\nPID: " << getpid() << " is making a deposit to SAVING of amt " << amt << ". Current balance is " << shmBUF[SAVING] << endl;
-        shmBUF[SAVING] += amt;
-        cout << "\nPID: " << getpid() << " sees new balance of SAVING to be: " << shmBUF[SAVING] << endl;
-        sem.V(SAVING);
-
-        sem.P(CREDIT);
-        cout << "\nPID: " << getpid() << " is making a deposit to CREDIT of amt " << amt << ". Current balance is " << shmBUF[CREDIT] << endl;
-        shmBUF[CREDIT] += amt;
-        cout << "\nPID: " << getpid() << " sees new balance of CREDIT to be: " << shmBUF[CREDIT] << endl;
-        sem.V(CREDIT);
-
-        sem.P(SAFE);
-        cout << "\nPID: " << getpid() << " is making a deposit to SAFE of amt " << amt << ". Current balance is " << shmBUF[SAFE] << endl;
-        shmBUF[SAFE] += amt;
-        cout << "\nPID: " << getpid() << " sees new balance of SAFE to be: " << shmBUF[SAFE] << endl;
-        sem.V(SAFE);
+        sem.P(k % BUFFSIZE);
+        cout << "\nPID: " << getpid() << " is making a deposit to " << k % BUFFSIZE << " of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
+        shmBUF[k % BUFFSIZE] += amt;
+        cout << "\nPID: " << getpid() << " sees new balance of " << k % BUFFSIZE << " to be: " << shmBUF[k % BUFFSIZE] << endl;
+        sem.V(k % BUFFSIZE);
         
     }
 }
 
 void withdraw(SEMAPHORE& sem, double* shmBUF, int amt) {
     for(int k = 0; k < MAXTIME; k++) {
-        sem.P(CHECKING);
-        cout << "\nPID: " << getpid() << " is making a withdraw to CHECKINGS of amt " << amt << ". Current balance is " << shmBUF[CHECKING] << endl;
-        shmBUF[CHECKING] -= amt;
-        cout << "\nPID: " << getpid() << " sees new balance of CHECKINGS to be: " << shmBUF[CHECKING] << endl;
-        sem.V(CHECKING);
-
-        sem.P(SAVING);
-        cout << "\nPID: " << getpid() << " is making a withdraw to SAVING of amt " << amt << ". Current balance is " << shmBUF[SAVING] << endl;
-        shmBUF[SAVING] -= amt;
-        cout << "\nPID: " << getpid() << " sees new balance of SAVING to be: " << shmBUF[SAVING] << endl;
-        sem.V(SAVING);
-
-        sem.P(CREDIT);
-        cout << "\nPID: " << getpid() << " is making a withdraw to CREDIT of amt " << amt << ". Current balance is " << shmBUF[CREDIT] << endl;
-        shmBUF[CREDIT] -= amt;
-        cout << "\nPID: " << getpid() << " sees new balance of CREDIT to be: " << shmBUF[CREDIT] << endl;
-        sem.V(CREDIT);
-
-        sem.P(SAFE);
-        cout << "\nPID: " << getpid() << " is making a withdraw to SAFE of amt " << amt << ". Current balance is " << shmBUF[SAFE] << endl;
-        shmBUF[SAFE] -= amt;
-        cout << "\nPID: " << getpid() << " sees new balance of SAFE to be: " << shmBUF[SAFE] << endl;
-        sem.V(SAFE);
+        sem.P(k % BUFFSIZE);
+        cout << "\nPID: " << getpid() << " is making a withdraw to " << k % BUFFSIZE << " of amt " << amt << ". Current balance is " << shmBUF[k % BUFFSIZE] << endl;
+        shmBUF[k % BUFFSIZE] -= amt;
+        cout << "\nPID: " << getpid() << " sees new balance of " << k % BUFFSIZE << " to be: " << shmBUF[k % BUFFSIZE] << endl;
+        sem.V(k % BUFFSIZE);
         
     }
 }
