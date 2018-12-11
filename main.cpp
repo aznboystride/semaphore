@@ -13,9 +13,9 @@
 
 using namespace std;
 
-const int PROCESS_COUNT = 10;
-const int ITERATIONS = 7;
-const int BUFFSIZE = 4;
+const int PROCESS_COUNT = 10;   // Number of processes to be created
+const int ITERATIONS = 7;       // Number of times each process will attempt to manipulate shared memory
+const int BUFFSIZE = 4;         // Shared memory contains 4 elements
 
 enum {
     CHECKING,
@@ -24,7 +24,7 @@ enum {
     SAFE
 };
 
-void updateWithBeta(SEMAPHORE&, float*);
+void updateWithBeta(SEMAPHORE&, float*); // Accesses and increments a random element in the shared memory
 
 void initsem(SEMAPHORE&); // Inititalizes all of the semaphores to 1
 
