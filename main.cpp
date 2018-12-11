@@ -26,9 +26,9 @@ enum {
 
 void updateWithBeta(SEMAPHORE&, float*);
 
-void initsem(SEMAPHORE&);
+void initsem(SEMAPHORE&); // Inititalizes all of the semaphores to 1
 
-void initshmBUF(float*);
+void initshmBUF(float*); // Initializes all elements of the memory shared buffer to 1.
 
 void parent_cleanup(SEMAPHORE&, int shmid);
 
@@ -77,17 +77,24 @@ void parent_cleanup (SEMAPHORE &sem, int shmid) {
 
 void updateWithBeta(SEMAPHORE& sem, float* shmBUF) {
     random_device rd;
-    uniform_real_distribution<double> distribution(-0.5, 0.5);
+    uniform_real_distribution<double> realDistribution(-0.5, 0.5); // For beta
+    uniform_int_distribution<int> intDistribution(0, INT_MAX); // To randomize shared memory buffer index
     mt19937 generator(rd());
     float beta;
+    int randomIndex;
+    float oldValue;
     for(int k = 0; k < ITERATIONS; k++) {
-        beta = distribution(generator);
-        sem.P(k % BUFFSIZE);
-        cout << "\nPID: " << getpid() << " sees current value of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
-        cout << "\nPID: " << getpid() << " is updating buff[" << k % BUFFSIZE << "] of beta " << beta << endl;
-        shmBUF[k % BUFFSIZE] += shmBUF[k % BUFFSIZE] * beta;
-        cout << "\nPID: " << getpid() << " sees new value of buff[" << k % BUFFSIZE << "] to be: " << shmBUF[k % BUFFSIZE] << endl;
-        sem.V(k % BUFFSIZE);
+        beta = realDistribution(generator);
+        randomIndex = intDistribution(generator) % BUFFSIZE; // random index with range [0, BUFFSIZE-1]
+        sem.P(randomIndex); // P operation to prevent other processes from accessing this shared buffer index.
+        oldValue = shmBUF[randomIndex];
+        shmBUF[randomIndex] = shmBUF[randomIndex] * (1 + beta); // increments shared memory element by a fraction of itself base on beta
+        cout << "\nPID: " << getpid() 
+            << " | \u03b2\: " << beta 
+            << " | Old Value BUFF[" << randomIndex << "] = " << oldValue 
+            << " | New Value: (BUFF[" << randomIndex << "] += BUFF[" << randomIndex << "] * \u03b2\) = " << shmBUF[randomIndex]
+            << endl;
+        sem.V(randomIndex);
         
     }
 }
